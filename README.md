@@ -33,9 +33,8 @@ Azure and Terraform
 
 Azure and Terraform setup
 
-```markdown
-![Setup](src/image.jpg)
-```
+
+![Setup](./src/image.jpg)
 
 
 
