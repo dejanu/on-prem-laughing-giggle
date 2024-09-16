@@ -34,7 +34,7 @@ Azure and Terraform
 Azure and Terraform setup
 
 
-![Setup](./src/image.jpg)
+![Setup](./src/setup.png)
 
 
 
