@@ -18,4 +18,8 @@ terraform plan --out createplan.tfplan
 
 # apply the changes required to reach the desired state of the configuration
 terraform apply "createplan.tfplan"
+
+# proposed destroy changes without executing them
+terraform plan -destroy -out destroy.tfplan
+ terraform apply "destroy.tfplan"
 ```

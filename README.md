@@ -38,7 +38,6 @@ Azure and Terraform
 * A network interface (NIC) is the interconnection between a virtual machine and a virtual network. You can assign Public or Private IP addresses. Each NIC must be connected to a VNet that exists in the same Azure location and subscription as the NIC
     * Public IP addresses - Used to communicate inbound and outbound (WHITHOUT network address translation (NAT))
 
-* Generate ssh-key for VM access e.g.: `ssh-keygen -C "adminuser@example.com"`
 
 ## Errors
 
