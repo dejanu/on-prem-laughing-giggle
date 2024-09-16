@@ -1,5 +1,5 @@
-# on-prem-laughing-giggle
-Stack: vagrant/terraform/k8s
+# on-prem-laughing-giggle: setup k8s on-prem-ish infr
+Stack: terraform/ansible
 
 * Steps:
     * Provision the infra
@@ -28,6 +28,43 @@ resource "vagrant_vm" "my_vagrant_vm" {
 ## Public Cloud Setup:
 
 Azure and Terraform
+
+## Public Cloud Setup:
+
+Azure and Terraform setup
+
+```markdown
+![Setup](src/image.jpg)
+```
+
+
+
+* Azure [provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
+
+* Structure: ResourceGroup -> [VNet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#example-usage) -> [Subnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet)
+
+* When you create a virtual machine (VM), you create a virtual network or **use an existing one**.
+* A network interface (NIC) is the interconnection between a virtual machine and a virtual network. You can assign Public or Private IP addresses. Each NIC must be connected to a VNet that exists in the same Azure location and subscription as the NIC
+  * Public IP addresses - Used to communicate inbound and outbound (WHITHOUT network address translation (NAT))
+
+
+## Errors
+
+
+```bash
+ Error: static IP allocation must be used when creating Standard SKU public IP addresses
+│
+│   with azurerm_public_ip.kubernetes_pip[0],
+│   on main.tf line 42, in resource "azurerm_public_ip" "kubernetes_pip":
+│   42: resource "azurerm_public_ip" "kubernetes_pip" {
+│
+```
+ Stock Keeping Unit (SKU): specific version or offering of a resource within Azure
+
+## Resources:
+
+* VNet [network overview](https://learn.microsoft.com/en-us/azure/virtual-network/network-overview)
+
 
 * Azure [provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 
