@@ -1,0 +1,7 @@
+---
+- hosts: worker_nodes
+  become: yes
+  tasks:
+    - name: Join Worker Node to Kubernetes Cluster
+      command: kubeadm join {{ hostvars['control_plane'].ansible_default_ipv4.address }}:6443 --token <token> --discovery-token-ca-cert-hash sha256:<ca-hash>
+      ignore_errors: yes

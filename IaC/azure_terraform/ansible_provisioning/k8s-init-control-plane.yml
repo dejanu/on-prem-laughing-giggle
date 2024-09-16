@@ -1,0 +1,19 @@
+- hosts: control_plane
+  become: yes
+  tasks:
+    - name: Initialize Kubernetes Control Plane
+      command: kubeadm init --pod-network-cidr=192.168.0.0/16
+      register: control_plane_output
+      ignore_errors: yes
+
+    - name: Create kubeconfig directory
+      file:
+        path: /root/.kube
+        state: directory
+        mode: 0700
+
+    - name: Copy Kubernetes admin config
+      command: cp /etc/kubernetes/admin.conf /root/.kube/config
+
+    - name: Apply Calico network plugin
+      command: kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml

@@ -1,0 +1,87 @@
+# playbook for both the control plane and worker nodes to install dependencies
+---
+- hosts: all
+  become: yes
+  tasks:
+  vars:
+    k8s_version: "1.28.0"  # Change to your desired version
+  
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+        update_cache: yes
+
+    - name: Add Kubernetes APT repository
+      apt_repository:
+        repo: 'deb [arch=amd64] https://apt.kubernetes.io/ kubernetes-xenial main'
+        state: present
+        filename: 'kubernetes'
+        update_cache: yes
+
+
+    # Install containerd
+    - name: Install containerd
+      apt:
+        name: containerd
+        state: present
+        update_cache: yes
+
+    # Configure containerd to use systemd as the cgroup driver
+    - name: Configure containerd to use systemd as cgroup driver
+      copy:
+        content: |
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+            SystemdCgroup = true
+        dest: /etc/containerd/config.toml
+        force: yes
+
+    # Restart containerd to apply changes
+    - name: Restart containerd
+      systemd:
+        name: containerd
+        state: restarted
+        enabled: yes
+
+    # Install kubeadm, kubelet, and kubectl
+    - name: Install Kubernetes components (kubeadm, kubelet, and kubectl)
+      apt:
+        name:
+          - kubelet={{ k8s_version }}
+          - kubeadm={{ k8s_version }}
+          - kubectl={{ k8s_version }}!!
+        state: present
+        update_cache: yes
+
+    # Hold the Kubernetes packages to prevent automatic upgrades
+    - name: Hold kubelet, kubeadm, and kubectl packages
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: hold
+
+    # Ensure kubelet is started and enabled
+    - name: Enable and start kubelet
+      systemd:
+        name: kubelet
+        enabled: yes
+        state: started
+
+    # Disable swap
+    - name: Disable swap
+      command: swapoff -a
+
+    # Remove swap entry from /etc/fstab
+    - name: Remove swap entry from /etc/fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^\s*/swap\s'
+        replace: '# /swapfile swap swap defaults 0 0'
+        backup: yes
