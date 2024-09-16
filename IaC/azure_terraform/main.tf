@@ -38,9 +38,9 @@ resource "azurerm_subnet" "kubernetes_subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-# create public IP for each VM
+# create public IP for each control-plane VM
 resource "azurerm_public_ip" "kubernetes_pip" {
-  count               = var.vm_count
+  count               = var.control_vm_count
   name                = "k8s-pip-${count.index}"
   location            = azurerm_resource_group.kubernetes_rg.location
   resource_group_name = azurerm_resource_group.kubernetes_rg.name
@@ -48,10 +48,10 @@ resource "azurerm_public_ip" "kubernetes_pip" {
   sku                 = "Standard"
 }
 
-# Create NIC for each VM: NIC connects the VM to the VNET
-resource "azurerm_network_interface" "kubernetes_nic" {
-  count               = var.vm_count
-  name                = "k8s_nic-${count.index}"
+# Create NIC for each control-plane VM: NIC connects the VM to the VNET
+resource "azurerm_network_interface" "control_plane_nic" {
+  count               = var.control_vm_count
+  name                = "control_plane_nic-${count.index}"
   location            = azurerm_resource_group.kubernetes_rg.location
   resource_group_name = azurerm_resource_group.kubernetes_rg.name
 
@@ -63,15 +63,61 @@ resource "azurerm_network_interface" "kubernetes_nic" {
   }
 }
 
-# Create VMs
-resource "azurerm_linux_virtual_machine" "kubernetes_vm" {
-  count                = var.vm_count
-  name                 = "k8s-vm-${count.index}"
+# Create NIC for each worker VM: NIC connects the VM to the VNET
+resource "azurerm_network_interface" "worker_node_nic" {
+  count               = var.worker_vm_count
+  name                = "worker_node_nic-${count.index}"
+  location            = azurerm_resource_group.kubernetes_rg.location
+  resource_group_name = azurerm_resource_group.kubernetes_rg.name
+
+ ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.kubernetes_subnet.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+# Create control-plane VMs
+resource "azurerm_linux_virtual_machine" "control_vm" {
+  count                = var.control_vm_count
+  name                 = "control-vm-${count.index}"
   resource_group_name  = azurerm_resource_group.kubernetes_rg.name
   location             = azurerm_resource_group.kubernetes_rg.location
   size                 = "Standard_B2s" # 2vCPUs, 4GB RAM
   admin_username       = "adminuser"
-  network_interface_ids = [element(azurerm_network_interface.kubernetes_nic[*].id, count.index)]
+  network_interface_ids = [
+    azurerm_network_interface.control_plane_nic[count.index].id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = file("${path.module}/.ssh/admin.pub")
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+}
+
+# Create worker node VMs
+resource "azurerm_linux_virtual_machine" "worker_vm" {
+  count                = var.worker_vm_count
+  name                 = "worker-vm-${count.index}"
+  resource_group_name  = azurerm_resource_group.kubernetes_rg.name
+  location             = azurerm_resource_group.kubernetes_rg.location
+  size                 = "Standard_B2s" # 2vCPUs, 4GB RAM
+  admin_username       = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.worker_node_nic[count.index].id,
+  ]
 
   admin_ssh_key {
     username   = "adminuser"
@@ -111,29 +157,12 @@ resource "azurerm_network_security_group" "nsg" {
 }
 
 resource "azurerm_network_interface_security_group_association" "nsg_association" {
-  count                      = var.vm_count
-  network_interface_id       = azurerm_network_interface.kubernetes_nic[count.index].id
+  count                      = var.control_vm_count
+  network_interface_id       = azurerm_network_interface.control_plane_nic[count.index].id
   network_security_group_id  = azurerm_network_security_group.nsg.id
 }
-# Output the IP addresses of the VMs to a file
-output "ip_addresses" {
-  value = {
-    private = [for nic in azurerm_network_interface.kubernetes_nic : nic.private_ip_address]
-    public  = [for pip in azurerm_public_ip.kubernetes_pip : pip.ip_address]
-  }
-}
 
-# Render the Jinja template
-data "template_file" "jinja_template" {
-  template = file("${path.module}/template.j2")
-  vars = {
-    private_ips = output.ip_addresses.private
-    public_ips = output.ip_addresses.public
-  }
-}
-
-# Write the rendered template to a file
-resource "local_file" "rendered_template_file" {
-  filename = "/path/to/rendered_template.txt"
-  content  = data.template_file.jinja_template.rendered
+# Output the public IP address of the control-plane VMs
+output "control_plane_public_ip" {
+  value = azurerm_public_ip.kubernetes_pip[*].ip_address
 }

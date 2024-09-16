@@ -1,0 +1,9 @@
+[control_plane]
+{% for ip in control_plane_ips %}
+{{ ip }}
+{% endfor %}
+
+[workers]
+{% for ip in worker_ips %}
+{{ ip }}
+{% endfor %}
