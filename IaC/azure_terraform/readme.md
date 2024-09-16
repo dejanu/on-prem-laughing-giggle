@@ -21,5 +21,8 @@ terraform apply "createplan.tfplan"
 
 # proposed destroy changes without executing them
 terraform plan -destroy -out destroy.tfplan
- terraform apply "destroy.tfplan"
+terraform apply "destroy.tfplan"
+
+# interactive
+terraform apply -destroy
 ```

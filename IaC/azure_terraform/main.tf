@@ -63,6 +63,17 @@ resource "azurerm_network_interface" "control_plane_nic" {
   }
 }
 
+# Create pubic IP for each worker VM
+resource "azurerm_public_ip" "worker_pip" {
+  count               = var.worker_vm_count
+  name                = "worker-pip-${count.index}"
+  location            = azurerm_resource_group.kubernetes_rg.location
+  resource_group_name = azurerm_resource_group.kubernetes_rg.name
+  allocation_method   = "Static" # static IP allocation must be used when creating Standard SKU public IP addresses
+  sku                 = "Standard"
+}
+
+
 # Create NIC for each worker VM: NIC connects the VM to the VNET
 resource "azurerm_network_interface" "worker_node_nic" {
   count               = var.worker_vm_count
@@ -74,6 +85,7 @@ resource "azurerm_network_interface" "worker_node_nic" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.kubernetes_subnet.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.worker_pip[count.index].id
   }
 }
 
@@ -156,13 +168,30 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "nsg_association" {
+# Associate network security group with control-plane NICs
+resource "azurerm_network_interface_security_group_association" "control_nsg_association" {
   count                      = var.control_vm_count
   network_interface_id       = azurerm_network_interface.control_plane_nic[count.index].id
   network_security_group_id  = azurerm_network_security_group.nsg.id
 }
 
-# Output the public IP address of the control-plane VMs
-output "control_plane_public_ip" {
-  value = azurerm_public_ip.kubernetes_pip[*].ip_address
+# Associate network security group with worker node NICs
+resource "azurerm_network_interface_security_group_association" "worker_nsg_association" {
+  count                      = var.worker_vm_count
+  network_interface_id       = azurerm_network_interface.worker_node_nic[count.index].id
+  network_security_group_id  = azurerm_network_security_group.nsg.id
+}
+
+# Output the public IP address of the control-plane VMs and the private IP address of the worker node VMs
+output "ssh_command" {
+  value = join(", ", [for ip in azurerm_public_ip.kubernetes_pip : "ssh -i .ssh/admin adminuser@${ip.ip_address}"])
+}
+
+# Generate ansible inventory file
+resource "local_file" "inventory_file" {
+  filename = "${path.module}/ansible_provisioning/inventory.j2"
+  content = templatefile("${path.module}/inventory.j2.tpl", {
+    control_ips = [for i, ip in azurerm_public_ip.kubernetes_pip : { index = i, address = ip.ip_address }]
+    worker_ips  = [for i, ip in azurerm_public_ip.worker_pip : { index = i, address = ip.ip_address }]
+  })
 }
