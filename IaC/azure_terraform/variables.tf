@@ -1,5 +1,5 @@
 variable "subscription_id" {
-  default = "33412aad-8988-47c9-a0ae-0c95efad1811"
+  default = "INSERT_SUBSCRTION_ID"
   type = string
   description = "The Azure Subscription ID"
 }

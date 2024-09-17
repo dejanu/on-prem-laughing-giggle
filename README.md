@@ -30,6 +30,10 @@ Stack: Terraform/Ansible/Azure
 * VNet [network overview](https://learn.microsoft.com/en-us/azure/virtual-network/network-overview)
 
 
+### Demo
+
+[![Demo](http://img.youtube.com/vi/RYk7IxoLFLM/0.jpg)](https://youtu.be/RYk7IxoLFLM?si=tZ8haIlvDxswuCxR "k8s: Terraform|Ansible|Azure")
+
 
 
 
