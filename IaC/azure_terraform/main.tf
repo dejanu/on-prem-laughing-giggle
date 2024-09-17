@@ -149,7 +149,7 @@ resource "azurerm_linux_virtual_machine" "worker_vm" {
   }
 }
 
-# Open SSH Port 22
+# Open SSH Port 22 and 6443
 resource "azurerm_network_security_group" "nsg" {
   name                = "myNSG"
   location            = azurerm_resource_group.kubernetes_rg.location
@@ -163,6 +163,18 @@ resource "azurerm_network_security_group" "nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "K8SAPI" # Kubernetes API Server listens on port 6443
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "6443"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }

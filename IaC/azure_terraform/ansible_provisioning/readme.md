@@ -1,5 +1,7 @@
 ### Test infra
 
+Ansible Python [matrix](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix)
+
 ```bash
 ansible control_plane -v -m ping -i inventory.j2
 ansible worker_nodes -v -m ping -i inventory.j2

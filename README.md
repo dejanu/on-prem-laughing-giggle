@@ -11,13 +11,17 @@ Stack: Terraform/Ansible/Azure
 * Full network connectivity among all machines in the cluster (either a public or a private network)
 * Ensure both VMs have internal networking enabled and can communicate with each other (same network, and ensure firewall rules allow required ports).
 
-
 ## Setup:
 
 Terraform create infra, Ansible provision infra
 
 
 ![Setup](./src/setup.png)
+
+## Steps:
+
+* Create infra:
+
 
 ## Resources:
 

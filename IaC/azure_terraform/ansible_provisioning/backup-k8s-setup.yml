@@ -27,20 +27,18 @@
 
     - name: Set system configurations for Kubernetes networking
       file:
-        # path: "/etc/sysctl.d/99-kubernetes-cri.conf"
-        path: "/etc/sysctl.d/kubernetes.conf"
+        path: "/etc/sysctl.d/99-kubernetes-cri.conf"
         state: "touch"
 
     - name: Add conf for containerd
       blockinfile:
-        # path: "/etc/sysctl.d/99-kubernetes-cri.conf"
-        path: "/etc/sysctl.d/kubernetes.conf"
+        path: "/etc/sysctl.d/99-kubernetes-cri.conf"
         block: |
                 net.bridge.bridge-nf-call-iptables = 1
                 net.ipv4.ip_forward = 1
                 net.bridge.bridge-nf-call-ip6tables = 1
 
-    - name: Reload config
+    - name: Apply new settings
       command: sudo sysctl --system
 
     - name: install containerd
@@ -65,20 +63,20 @@
 
     - name: Download Kubernetes GPG key and store it in keyring
       shell: |
-        sudo mkdir -p -m 755 /etc/apt/keyrings
-        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key |
+        sudo mkdir -p /etc/apt/keyrings
+        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key |
         gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-    - name: Add Kubernetes apt repository for v1.30
+    - name: Add Kubernetes apt repository for v1.28
       copy:
-        content: 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /'
+        content: 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /'
         dest: /etc/apt/sources.list.d/kubernetes.list
         force: yes
         
     - name: install kubernetes
       shell: |
             sudo apt-get update
-            sudo apt-get install -y kubeadm kubelet kubectl
+            sudo apt-get install -y kubeadm=1.28.1-1.1 kubelet=1.28.1-1.1 kubectl=1.28.1-1.1
             sudo apt-mark hold kubelet kubeadm kubectl
 
     - name: Restart kubelet

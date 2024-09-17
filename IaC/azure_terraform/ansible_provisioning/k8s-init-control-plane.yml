@@ -1,19 +1,38 @@
 - hosts: control_plane
   become: yes
   tasks:
-    - name: Initialize Kubernetes Control Plane
-      command: kubeadm init --pod-network-cidr=192.168.0.0/16
-      register: control_plane_output
-      ignore_errors: yes
 
-    - name: Create kubeconfig directory
+    - name: reset the cluster # just to be sure revert of changes made by kubeadm init or kubeadm join
+      shell: kubeadm reset -f
+    
+    - name: initialize the cluster
+      shell: kubeadm init --node-name $(hostname) --upload-certs
+      args:
+        chdir: $HOME
+        creates: cluster_initialized.txt
+
+    - name: create .kube directory
       file:
-        path: /root/.kube
+        path: $HOME/.kube
         state: directory
-        mode: 0700
+        mode: 0755
 
-    - name: Copy Kubernetes admin config
-      command: cp /etc/kubernetes/admin.conf /root/.kube/config
+    - name: copies admin.conf to user's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: $HOME/.kube/config
+        remote_src: yes
+        owner: adminuser
 
-    - name: Apply Calico network plugin
-      command: kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml
+    - name: Install calico pod network
+      command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+      args:
+        chdir: $HOME
+
+    - name: Generate join command
+      command: kubeadm token create --print-join-command
+      register: join_command
+
+    - debug:
+        msg: "{{ join_command.stdout }}" 
+

@@ -2,7 +2,7 @@
 
 * In the root of this directory create `mkdir .ssh && cd $_` and generate `admin` ssh-key for VM access e.g.: `ssh-keygen -C "adminuser@example.com"`
 
-* This setup uses local backend - state is stored as local file on disk
+* This setup uses local backend  state is stored as local file on disk
 
 ## Usage
 
