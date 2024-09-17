@@ -19,7 +19,7 @@
             overlay
             br_netfilter
 
-    - name: modprobe
+    - name: Enable kernel modules
       shell: |
             sudo modprobe overlay
             sudo modprobe br_netfilter
@@ -81,8 +81,8 @@
             sudo apt-get install -y kubeadm kubelet kubectl
             sudo apt-mark hold kubelet kubeadm kubectl
 
-    - name: Restart kubelet
-      service:
-        name: kubelet
-        daemon_reload: yes
-        state: restarted
+    - name: Enable the kubelet service before running kubeadm
+      shell: |
+        sudo systemctl enable --now kubelet
+
+# The kubelet is now restarting every few seconds, as it waits in a crashloop for kubeadm to tell it what to do.

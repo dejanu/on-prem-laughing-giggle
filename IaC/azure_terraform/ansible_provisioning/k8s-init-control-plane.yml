@@ -1,31 +1,36 @@
+# playbook for control plane
+---
 - hosts: control_plane
   become: yes
   tasks:
-
     - name: reset the cluster # just to be sure revert of changes made by kubeadm init or kubeadm join
       shell: kubeadm reset -f
     
-    - name: initialize the cluster
-      shell: kubeadm init --node-name $(hostname) --upload-certs
+    - name: Initialize the control-plane # calico will be used as the pod network
+      shell: kubeadm init --pod-network-cidr=192.168.0.0/16
       args:
         chdir: $HOME
         creates: cluster_initialized.txt
 
     - name: create .kube directory
+      become: yes
+      become_user: adminuser
       file:
         path: $HOME/.kube
         state: directory
         mode: 0755
-
-    - name: copies admin.conf to user's kube config
+     
+    - name: copy admin.conf to user's kube config
       copy:
         src: /etc/kubernetes/admin.conf
-        dest: $HOME/.kube/config
+        dest: /home/adminuser/.kube/config
         remote_src: yes
         owner: adminuser
-
+    
     - name: Install calico pod network
       command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+      become: yes
+      become_user: adminuser
       args:
         chdir: $HOME
 

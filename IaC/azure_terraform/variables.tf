@@ -17,13 +17,13 @@ variable "location" {
 }
 
 variable "control_vm_count" {
-  default = 2
+  default = 1
   type = number
   description = "The number of VMs to create"
 }
 
 variable "worker_vm_count" {
-  default = 1
+  default = 2
   type = number
   description = "The number of VMs to create"
 }

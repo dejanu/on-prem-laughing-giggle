@@ -195,7 +195,7 @@ resource "azurerm_network_interface_security_group_association" "worker_nsg_asso
 }
 
 # Output the public IP address of the control-plane VMs and the private IP address of the worker node VMs
-output "ssh_command" {
+output "ssh_controlplane" {
   value = join(", ", [for ip in azurerm_public_ip.kubernetes_pip : "ssh -i .ssh/admin adminuser@${ip.ip_address}"])
 }
 

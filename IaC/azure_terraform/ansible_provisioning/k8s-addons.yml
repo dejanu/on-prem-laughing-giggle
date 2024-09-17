@@ -1,0 +1,30 @@
+# Install metrics server and metalLB
+---
+- hosts: control_plane
+  tasks:
+    - name: Copy components.yaml
+      copy:
+        src: components.yaml
+        dest: /home/adminuser/components.yaml
+      become: yes
+      become_user: adminuser
+
+    - name: Apply components.yaml
+      command: kubectl apply -f /home/adminuser/components.yaml
+      become: yes
+      become_user: adminuser
+
+    - name: MetalLB prerequisites
+      become: yes
+      become_user: adminuser
+      shell: |
+        kubectl get configmap kube-proxy -n kube-system -o yaml | \
+        sed -e "s/strictARP: false/strictARP: true/" | \
+        kubectl apply -f - -n kube-system
+      args:
+        executable: /bin/bash
+        
+    - name: Install MetalLB
+      become: yes
+      become_user: adminuser
+      command: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml
