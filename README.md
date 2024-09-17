@@ -13,14 +13,12 @@ Stack: Terraform/Ansible/Azure
 
 ## Setup:
 
-Terraform create infra, Ansible provision infra
-
-
 ![Setup](./src/setup.png)
 
 ## Steps:
 
-* Create infra:
+* Terraform create infra [doc](https://github.com/dejanu/on-prem-laughing-giggle/blob/main/IaC/azure_terraform/readme.md)
+* Ansible provision infra [doc](https://github.com/dejanu/on-prem-laughing-giggle/blob/main/IaC/azure_terraform/readme.md)
 
 
 ## Resources:

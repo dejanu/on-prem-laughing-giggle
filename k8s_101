@@ -1,0 +1,35 @@
+# required ports that need to be open: https://kubernetes.io/docs/reference/networking/ports-and-protocols/
+
+# swap should either be disabled or tolerated by kubelet, default behavior of a kubelet is to fail to start if swap memory is detected on a node
+# disable swap spaces
+sudo swapoff -a
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+
+# Kubernetes comes from a non-standard repository, download the signing key to ensure the software is authentic
+# download the key and store it in a safe place (default is /etc/apt/keyrings/)
+sudo mkdir -p -m 755 /etc/apt/keyrings
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+# add repos
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt update
+
+
+# install kubeadm: the command to bootstrap the cluster + kubelet and kubectl
+https://forum.linuxfoundation.org/discussion/864693/the-repository-http-apt-kubernetes-io-kubernetes-xenial-release-does-not-have-a-release-file
+
+# install container runtime: CRI is being used to interface with the chosen container runtime i.e. containerd
+
+Runtime	       Path to Unix domain socket
+containerd 	   unix:///var/run/containerd/containerd.sock
+CRI-O	       unix:///var/run/crio/crio.sock
+Docker (using cri-dockerd)	unix:///var/run/cri-dockerd.soc
+ 
+https://kubernetes.io/docs/setup/production-environment/container-runtimes/
+
+
+Both the container runtime and the kubelet have a property called "cgroup driver", which is important for the management of cgroups on Linux machines
+
+You must deploy a Container Network Interface (CNI) based Pod network add-on so that your Pods can communicate with each other. 
+Cluster DNS (CoreDNS) will not start up before a network is installed.
