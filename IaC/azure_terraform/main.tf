@@ -6,6 +6,14 @@ terraform {
       version = "~> 4.0"
     }
   }
+
+  backend "azurerm" {
+      resource_group_name  = "" # resurce group name
+      storage_account_name = "" # storage_account_name
+      container_name       = "" # blob container name
+      key                  = ""
+  }
+
 }
 
 # Default Subscription defined in the Azure CLI
