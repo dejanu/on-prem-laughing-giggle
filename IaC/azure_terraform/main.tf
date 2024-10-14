@@ -8,7 +8,7 @@ terraform {
   }
 
   backend "azurerm" {
-      resource_group_name  = "" # resurce group name
+      resource_group_name  = "" # different resource group name, not the same as the VM
       storage_account_name = "" # storage_account_name
       container_name       = "" # blob container name
       key                  = ""
