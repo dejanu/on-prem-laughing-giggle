@@ -18,7 +18,7 @@ Stack: Terraform/Ansible/Azure
 ## Steps:
 
 * Terraform create infra [doc](https://github.com/dejanu/on-prem-laughing-giggle/blob/main/IaC/azure_terraform/readme.md)
-* Ansible provision infra [doc](https://github.com/dejanu/on-prem-laughing-giggle/blob/main/IaC/azure_terraform/readme.md)
+* Ansible provision infra [doc](https://github.com/dejanu/on-prem-laughing-giggle/blob/main/IaC/azure_terraform/ansible_provisioning/readme.md)
 
 
 ## Resources:
